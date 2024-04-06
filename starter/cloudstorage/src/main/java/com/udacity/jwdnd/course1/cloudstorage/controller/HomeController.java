@@ -27,7 +27,7 @@ public class HomeController {
     public String homeView(Authentication authentication,
                            @ModelAttribute Note note,
                            @ModelAttribute CredentialForm credentialForm,
-                           Model model){
+                           Model model) {
         // fill login user info to html
         String username = authentication.getName();
         Integer userId = this.userService.getUser(username).getId();

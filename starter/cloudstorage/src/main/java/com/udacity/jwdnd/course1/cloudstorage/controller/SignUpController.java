@@ -24,11 +24,11 @@ public class SignUpController {
     }
 
     @PostMapping()
-    public String signupUser(@ModelAttribute User user, Model model){
+    public String signupUser(@ModelAttribute User user, Model model) {
         String successAttributeName = "signupSuccess";
         String errorAttributeName = "signupError";
         String username = user.getUsername();
-        if (!this.userService.isUserNameAvailable(username)){
+        if (!this.userService.isUserNameAvailable(username)) {
             model.addAttribute(successAttributeName, false);
             model.addAttribute(errorAttributeName, "The username already exists.");
             return "signup";

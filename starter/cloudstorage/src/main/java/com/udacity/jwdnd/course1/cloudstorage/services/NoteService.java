@@ -1,11 +1,10 @@
 package com.udacity.jwdnd.course1.cloudstorage.services;
 
+import com.udacity.jwdnd.course1.cloudstorage.enums.ServiceResponse;
 import com.udacity.jwdnd.course1.cloudstorage.mapper.NoteMapper;
 import com.udacity.jwdnd.course1.cloudstorage.model.Note;
-import com.udacity.jwdnd.course1.cloudstorage.model.User;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -20,39 +19,53 @@ public class NoteService {
         this.encryptionService = encryptionService;
     }
 
-    public int addNote(Note note){
-        if (this.userService.getUserById(note.getUserId()) == null){ return -1; }
-        return this.noteMapper.insertNote(note);
+    public ServiceResponse addNote(Note note) {
+        if (this.userService.getUserById(note.getUserId()) == null) {
+            return ServiceResponse.USER_NOT_FOUND_ERROR;
+        }
+        try {
+            int rowsAdded = this.noteMapper.insertNote(note);
+            if (rowsAdded == 1) {
+                return ServiceResponse.SUCCESS;
+            } else {
+                return ServiceResponse.DATABASE_ERROR;
+            }
+        } catch (Exception e) {
+            return ServiceResponse.DATABASE_ERROR;
+        }
+
     }
 
-    /**
-     * Delete note stored in the database
-     * @param noteId
-     * @return 0 if note can be deleted successfully, otherwise 1
-     * */
-    public int deleteNote(Integer noteId){
-        if (this.noteMapper.getNote(noteId)==null){ return 1; }
-        this.noteMapper.deleteNote(noteId);
-        return 0;
+    public ServiceResponse deleteNote(Integer noteId) {
+        if (this.noteMapper.getNote(noteId) == null) {
+            return ServiceResponse.RECORD_NOT_FOUND_ERROR;
+        }
+        try {
+            this.noteMapper.deleteNote(noteId);
+            return ServiceResponse.SUCCESS;
+        } catch (Exception e) {
+            return ServiceResponse.DATABASE_ERROR;
+        }
     }
 
-    /**
-     * Update note stored in the database
-     * @param note
-     * @return 0 if note can be updated successfully, otherwise 1
-     * */
-    public int updateNote(Note note){
+    public ServiceResponse updateNote(Note note) {
         Integer noteId = note.getId();
-        if (this.noteMapper.getNote(noteId)==null){ return 1; }
-        this.noteMapper.updateNote(note);
-        return 0;
+        if (this.noteMapper.getNote(noteId) == null) {
+            return ServiceResponse.USER_NOT_FOUND_ERROR;
+        }
+        try {
+            this.noteMapper.updateNote(note);
+            return ServiceResponse.SUCCESS;
+        } catch (Exception e) {
+            return ServiceResponse.DATABASE_ERROR;
+        }
     }
 
-    public Note getNote(Integer noteId){
+    public Note getNote(Integer noteId) {
         return this.noteMapper.getNote(noteId);
     }
 
-    public List<Note> getAllNotes(Integer userId){
+    public List<Note> getAllNotes(Integer userId) {
         return this.noteMapper.getAllNotes(userId);
     }
 

@@ -1,8 +1,11 @@
 package com.udacity.jwdnd.course1.cloudstorage.services;
 
+import com.udacity.jwdnd.course1.cloudstorage.enums.ServiceResponse;
 import com.udacity.jwdnd.course1.cloudstorage.mapper.CredentialMapper;
 import com.udacity.jwdnd.course1.cloudstorage.model.Credential;
 import com.udacity.jwdnd.course1.cloudstorage.model.CredentialForm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.LinkedList;
@@ -10,6 +13,7 @@ import java.util.List;
 
 @Service
 public class CredentialService {
+    private Logger logger = LoggerFactory.getLogger(EncryptionService.class);
     private final CredentialMapper credentialMapper;
     private final EncryptionService encryptionService;
     private final UserService userService;
@@ -32,23 +36,37 @@ public class CredentialService {
         ));
     }
 
-    public Credential getCredential(Integer id){
+    public Credential getCredential(Integer id) {
         return this.credentialMapper.getCredential(id);
     }
 
-    public int deleteCredential(Integer id){
-        this.credentialMapper.deleteCredential(id);
-        return 0;
+    public ServiceResponse deleteCredential(Integer id) {
+        try {
+            this.credentialMapper.deleteCredential(id);
+            return ServiceResponse.SUCCESS;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ServiceResponse.DATABASE_ERROR;
+        }
     }
 
-
-    public int addCredential(Credential credential) {
-        Integer userId = credential.getUserId();
-        String salt = this.userService.getUserById(userId).getSalt();
-        String encryptedPassword = this.encryptionService.encryptValue(credential.getPassword(), salt);
-        Credential encryptedCredential = credential.copy(credential);
-        encryptedCredential.setPassword(encryptedPassword);
-        return this.credentialMapper.insertCredential(encryptedCredential);
+    public ServiceResponse addCredential(Credential credential) {
+        try {
+            Integer userId = credential.getUserId();
+            String salt = this.userService.getUserById(userId).getSalt();
+            String encryptedPassword = this.encryptionService.encryptValue(credential.getPassword(), salt);
+            Credential encryptedCredential = credential.copy(credential);
+            encryptedCredential.setPassword(encryptedPassword);
+            int rowsAdded = this.credentialMapper.insertCredential(encryptedCredential);
+            if (rowsAdded == 1) {
+                return ServiceResponse.SUCCESS;
+            } else {
+                return ServiceResponse.DATABASE_ERROR;
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ServiceResponse.ENCRYPTION_ERROR;
+        }
     }
 
     public List<CredentialForm> getAllCredentialForms(Integer userId) {
@@ -74,17 +92,22 @@ public class CredentialService {
                 credential.getUserId());
     }
 
-    public int updateCredential(CredentialForm credentialForm) {
-        this.credentialMapper.updateCredential(
-                new Credential(
-                        credentialForm.getId(),
-                        credentialForm.getUrl(),
-                        credentialForm.getUserName(),
-                        credentialForm.getKey(),
-                        this.encryptionService.encryptValue(credentialForm.getRawPassword(), this.userService.getUserById(credentialForm.getUserId()).getSalt()),
-                        credentialForm.getUserId()
-                )
-        );
-        return 0;
+    public ServiceResponse updateCredential(CredentialForm credentialForm) {
+        try {
+            this.credentialMapper.updateCredential(
+                    new Credential(
+                            credentialForm.getId(),
+                            credentialForm.getUrl(),
+                            credentialForm.getUserName(),
+                            credentialForm.getKey(),
+                            this.encryptionService.encryptValue(credentialForm.getRawPassword(), this.userService.getUserById(credentialForm.getUserId()).getSalt()),
+                            credentialForm.getUserId()
+                    )
+            );
+            return ServiceResponse.SUCCESS;
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ServiceResponse.DATABASE_ERROR;
+        }
     }
 }

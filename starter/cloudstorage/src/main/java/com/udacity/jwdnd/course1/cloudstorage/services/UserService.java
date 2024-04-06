@@ -19,19 +19,21 @@ public class UserService {
 
     /**
      * Check whether the name of the user can be registered to the database
+     *
      * @param username
      * @return true if the username has not been registered, otherwise false
      */
-    public boolean isUserNameAvailable(String username){
+    public boolean isUserNameAvailable(String username) {
         return this.userMapper.getUserByName(username) == null;
     }
 
     /**
      * Write user POJO to database
+     *
      * @param user
      * @return user id in the database
-     * */
-    public int createUser(User user){
+     */
+    public int createUser(User user) {
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];
         random.nextBytes(salt);
@@ -40,17 +42,13 @@ public class UserService {
         return userMapper.insertUser(new User(null, user.getUsername(), encodedSalt, hashedPassword, user.getFirstName(), user.getLastName()));
     }
 
-    public User getUser(String username){
+    public User getUser(String username) {
         return this.userMapper.getUserByName(username);
     }
 
-    public User getUserById(Integer userId){
+    public User getUserById(Integer userId) {
         return this.userMapper.getUserById(userId);
     }
-
-
-
-
 
 
 }

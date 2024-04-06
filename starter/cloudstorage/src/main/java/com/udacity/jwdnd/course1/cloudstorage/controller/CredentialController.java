@@ -1,5 +1,7 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
+import com.udacity.jwdnd.course1.cloudstorage.enums.ResultModelAttribute;
+import com.udacity.jwdnd.course1.cloudstorage.enums.ServiceResponse;
 import com.udacity.jwdnd.course1.cloudstorage.model.Credential;
 import com.udacity.jwdnd.course1.cloudstorage.model.CredentialForm;
 import com.udacity.jwdnd.course1.cloudstorage.services.CredentialService;
@@ -38,7 +40,7 @@ public class CredentialController {
             credentialForm.setUserId(userId);
             this.credentialService.updateCredential(credentialForm);
         }
-        model.addAttribute("success", true);
+        model.addAttribute(ResultModelAttribute.SUCCESS.getStatusString(), true);
         return "result";
     }
 
@@ -48,11 +50,14 @@ public class CredentialController {
         String username = authentication.getName(); // current signed-in user
         Integer userId = this.userService.getUser(username).getId();
         if (!userId.equals(this.credentialService.getCredential(credentialId).getUserId())) {
-            model.addAttribute("error", "User is not authorized to delete credentials");
-        } else if (this.credentialService.deleteCredential(credentialId)!=0) {
-            model.addAttribute("error", "Cannot delete credential, please try again");
-        }else{
-            model.addAttribute("success", true);
+            model.addAttribute(ResultModelAttribute.ERROR.getStatusString(), "User is not authorized to delete credentials");
+            return "result";
+        }
+        ServiceResponse response = this.credentialService.deleteCredential(credentialId);
+        if (response.equals(ServiceResponse.SUCCESS)) {
+            model.addAttribute(ResultModelAttribute.SUCCESS.getStatusString(), true);
+        } else {
+            model.addAttribute(ResultModelAttribute.ERROR.getStatusString(), response.getStatusString());
         }
         return "result";
     }

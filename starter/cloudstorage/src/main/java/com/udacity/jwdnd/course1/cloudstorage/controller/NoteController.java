@@ -1,5 +1,7 @@
 package com.udacity.jwdnd.course1.cloudstorage.controller;
 
+import com.udacity.jwdnd.course1.cloudstorage.enums.ResultModelAttribute;
+import com.udacity.jwdnd.course1.cloudstorage.enums.ServiceResponse;
 import com.udacity.jwdnd.course1.cloudstorage.model.Note;
 import com.udacity.jwdnd.course1.cloudstorage.services.NoteService;
 import com.udacity.jwdnd.course1.cloudstorage.services.UserService;
@@ -27,18 +29,29 @@ public class NoteController {
         Integer userId = this.userService.getUser(username).getId();
         note.setUserId(userId);
         if (note.getId() != null) {
-            if (this.noteService.updateNote(note) != 0) {
-                model.addAttribute("error", "Cannot add note, please try again.");
-                return "result";
-            }
+            return updateNote(note, model);
         } else {
-            if (this.noteService.addNote(note) < 0) {
-                model.addAttribute("error", "Cannot add note, please try again.");
-                return "result";
-            }
+            return addNote(note, model);
         }
-        model.addAttribute("savedNotes", this.noteService.getAllNotes(userId));
-        model.addAttribute("success", true);
+    }
+
+    public String addNote(Note note, Model model) {
+        ServiceResponse response = this.noteService.addNote(note);
+        if (response.equals(ServiceResponse.SUCCESS)) {
+            model.addAttribute(ResultModelAttribute.SUCCESS.getStatusString(), true);
+        } else {
+            model.addAttribute(ResultModelAttribute.ERROR.getStatusString(), response.getStatusString());
+        }
+        return "result";
+    }
+
+    public String updateNote(Note note, Model model) {
+        ServiceResponse response = this.noteService.updateNote(note);
+        if (response.equals(ServiceResponse.SUCCESS)) {
+            model.addAttribute(ResultModelAttribute.SUCCESS.getStatusString(), true);
+        } else {
+            model.addAttribute(ResultModelAttribute.ERROR.getStatusString(), response.getStatusString());
+        }
         return "result";
     }
 
@@ -47,13 +60,15 @@ public class NoteController {
         Integer noteId = Integer.parseInt(id);
         String username = authentication.getName(); // current signed-in user
         Integer userId = this.userService.getUser(username).getId();
-        if (userId != this.noteService.getNote(noteId).getUserId()) {
-            model.addAttribute("error", "User is not authorized to delete note.");
-        } else if (this.noteService.deleteNote(noteId) != 0) {
-            model.addAttribute("error", "Cannot delete note, please try again.");
+        if (!this.noteService.getNote(noteId).getUserId().equals(userId)) {
+            model.addAttribute(ResultModelAttribute.ERROR.getStatusString(), "User is not authorized to delete note.");
+            return "result";
+        }
+        ServiceResponse response = this.noteService.deleteNote(noteId);
+        if (response.equals(ServiceResponse.SUCCESS)) {
+            model.addAttribute(ResultModelAttribute.SUCCESS.getStatusString(), true);
         } else {
-            model.addAttribute("success", true);
-            model.addAttribute("savedNotes", this.noteService.getAllNotes(userId));
+            model.addAttribute(ResultModelAttribute.ERROR.getStatusString(), response.getStatusString());
         }
         return "result";
     }
