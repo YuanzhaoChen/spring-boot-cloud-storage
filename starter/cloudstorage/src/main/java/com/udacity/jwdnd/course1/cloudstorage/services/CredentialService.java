@@ -13,7 +13,7 @@ import java.util.List;
 
 @Service
 public class CredentialService {
-    private Logger logger = LoggerFactory.getLogger(EncryptionService.class);
+    private Logger logger = LoggerFactory.getLogger(CredentialService.class);
     private final CredentialMapper credentialMapper;
     private final EncryptionService encryptionService;
     private final UserService userService;
